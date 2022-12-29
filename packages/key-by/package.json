@@ -2,6 +2,7 @@
 	"name": "@stefanprobst/key-by",
 	"version": "0.1.0",
 	"license": "MIT",
+	"type": "module",
 	"main": "./dist/index.cjs",
 	"types": "./dist/index.d.ts",
 	"exports": {
