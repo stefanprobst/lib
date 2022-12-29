@@ -1,6 +1,6 @@
 {
-	"name": "@stefanprobst/key-by",
-	"version": "1.0.1",
+	"name": "@stefanprobst/timer",
+	"version": "1.0.2",
 	"license": "MIT",
 	"type": "module",
 	"main": "./dist/index.cjs",
@@ -12,5 +12,8 @@
 	},
 	"scripts": {
 		"build": "rm -rf dist && microbundle --format cjs,modern ./src/index.ts"
+	},
+	"dependencies": {
+		"@stefanprobst/assert": "workspace:*"
 	}
 }

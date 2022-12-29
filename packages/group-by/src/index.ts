@@ -1,31 +1,55 @@
-export function groupBy<T>(values: Array<T>, getKey: (value: T) => string) {
-	const grouped: { [key: string]: Array<T> } = {};
+export function groupBy<T extends object, K extends string | number>(
+	values: Array<T>,
+	keys: (value: T) => K | Array<K>,
+): Record<K, Array<T>> {
+	const groups = Object.create(null);
 
-	for (const value of values) {
-		const key = getKey(value);
-
-		if (key in grouped) {
-			grouped[key]!.push(value);
+	function set(groups: Record<K, Array<T>>, id: K, value: T) {
+		if (!Object.prototype.hasOwnProperty.call(groups, id)) {
+			groups[id] = [value];
 		} else {
-			grouped[key] = [value];
+			groups[id].push(value);
 		}
 	}
 
-	return grouped;
+	values.forEach((value) => {
+		const ids = keys(value);
+		if (Array.isArray(ids)) {
+			ids.forEach((id) => {
+				set(groups, id, value);
+			});
+		} else {
+			set(groups, ids, value);
+		}
+	});
+
+	return groups;
 }
 
-export function groupByToMap<T>(values: Array<T>, getKey: (value: T) => string) {
-	const grouped = new Map<string, Array<T>>();
+export function groupByToMap<T extends object, K extends any>(
+	values: Array<T>,
+	keys: (value: T) => K | Array<K>,
+): Map<K, Array<T>> {
+	const groups = new Map();
 
-	for (const value of values) {
-		const key = getKey(value);
-
-		if (grouped.has(key)) {
-			grouped.get(key)!.push(value);
+	function set(groups: Map<K, Array<T>>, id: K, value: T) {
+		if (!groups.has(id)) {
+			groups.set(id, [value]);
 		} else {
-			grouped.set(key, [value]);
+			groups.get(id)!.push(value);
 		}
 	}
 
-	return grouped;
+	values.forEach((value) => {
+		const ids = keys(value);
+		if (Array.isArray(ids)) {
+			ids.forEach((id) => {
+				set(groups, id, value);
+			});
+		} else {
+			set(groups, ids, value);
+		}
+	});
+
+	return groups;
 }

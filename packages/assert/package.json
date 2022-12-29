@@ -1,6 +1,6 @@
 {
-	"name": "@stefanprobst/key-by",
-	"version": "1.0.1",
+	"name": "@stefanprobst/assert",
+	"version": "1.0.3",
 	"license": "MIT",
 	"type": "module",
 	"main": "./dist/index.cjs",
@@ -12,5 +12,8 @@
 	},
 	"scripts": {
 		"build": "rm -rf dist && microbundle --format cjs,modern ./src/index.ts"
+	},
+	"devDependencies": {
+		"@types/node": ">=18"
 	}
 }

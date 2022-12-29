@@ -1,5 +1,5 @@
 {
-	"name": "@stefanprobst/key-by",
+	"name": "@stefanprobst/is-nonempty-array",
 	"version": "1.0.1",
 	"license": "MIT",
 	"type": "module",
