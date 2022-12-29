@@ -1,0 +1,47 @@
+{
+	"private": true,
+	"license": "MIT",
+	"scripts": {
+		"build": "pnpm run --recursive build",
+		"changeset:add": "changeset add",
+		"changeset:status": "changeset status --verbose",
+		"ci:release": "changeset publish",
+		"format:check": "prettier . --cache --check --ignore-path .gitignore",
+		"format:fix": "pnpm run format:check --write",
+		"prepare": "run-s setup",
+		"setup": "simple-git-hooks || exit 0",
+		"types:check": "tsc --noEmit",
+		"validate": "run-p format:check types:check"
+	},
+	"engines": {
+		"node": ">=18",
+		"pnpm": ">=7"
+	},
+	"packageManager": "pnpm@7.21.0",
+	"devDependencies": {
+		"@changesets/changelog-github": "^0.4.8",
+		"@changesets/cli": "^2.26.0",
+		"@commitlint/cli": "^17.3.0",
+		"@stefanprobst/commitlint-config": "^1.0.3",
+		"@stefanprobst/prettier-config": "^3.0.0",
+		"@stefanprobst/tsconfig": "^2.2.2",
+		"lint-staged": "^13.1.0",
+		"microbundle": "^0.15.1",
+		"npm-run-all": "^4.1.5",
+		"prettier": "^2.8.1",
+		"simple-git-hooks": "^2.8.1",
+		"typescript": "^4.9.4"
+	},
+	"commitlint": {
+		"extends": "@stefanprobst/commitlint-config"
+	},
+	"lint-staged": {
+		"*": "prettier --cache --ignore-unknown --write"
+	},
+	"prettier": "@stefanprobst/prettier-config",
+	"simple-git-hooks": {
+		"commit-msg": "pnpm exec commitlint --edit",
+		"pre-commit": "pnpm exec lint-staged",
+		"pre-push": "pnpm run validate"
+	}
+}
