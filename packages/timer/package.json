@@ -10,6 +10,9 @@
 		"import": "./dist/index.modern.js",
 		"default": "./dist/index.modern.js"
 	},
+	"files": [
+		"dist"
+	],
 	"scripts": {
 		"build": "rm -rf dist && microbundle --format cjs,modern ./src/index.ts"
 	},
