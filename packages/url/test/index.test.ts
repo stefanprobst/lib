@@ -1,11 +1,14 @@
+import { createUrlSearchParams } from "@stefanprobst/url-search-params";
 import { test } from "uvu";
 import * as assert from "uvu/assert";
+
 import { createUrl } from "../src/index.js";
-import { createUrlSearchParams } from "@stefanprobst/url-search-params";
 
 test("should create URL", () => {
-	/** @ts-expect-error */
-	assert.throws(() => createUrl({ pathname: "/" }), /Invalid URL/);
+	assert.throws(() => {
+		// @ts-expect-error
+		return createUrl({ pathname: "/" });
+	}, /Invalid URL/);
 
 	assert.is(
 		String(createUrl({ baseUrl: "https://example.com", pathname: "/" })),

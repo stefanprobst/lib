@@ -1,4 +1,4 @@
-export function keyBy<T extends object, K extends string | number>(
+export function keyBy<T extends object, K extends number | string>(
 	values: Array<T>,
 	key: (value: T) => K,
 ): Record<K, T> {
@@ -12,10 +12,7 @@ export function keyBy<T extends object, K extends string | number>(
 	return map;
 }
 
-export function keyByToMap<T extends object, K extends any>(
-	values: Array<T>,
-	key: (value: T) => K,
-): Map<K, T> {
+export function keyByToMap<T extends object, K>(values: Array<T>, key: (value: T) => K): Map<K, T> {
 	const map = new Map();
 
 	values.forEach((value) => {

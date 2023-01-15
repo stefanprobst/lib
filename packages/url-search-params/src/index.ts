@@ -3,7 +3,7 @@ type Nullable<T> = T | null | undefined;
 type Primitive = boolean | number | string;
 
 export interface CreateUrlSearchParamsParams {
-	[key: string]: Nullable<Primitive> | Array<Nullable<Primitive>>;
+	[key: string]: Array<Nullable<Primitive>> | Nullable<Primitive>;
 }
 
 export function createUrlSearchParams(params: CreateUrlSearchParamsParams) {

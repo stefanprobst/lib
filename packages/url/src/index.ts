@@ -1,5 +1,5 @@
 export interface CreateUrlParams {
-	baseUrl: string | URL;
+	baseUrl: URL | string;
 	hash?: string;
 	pathname?: string;
 	searchParams?: URLSearchParams;

@@ -23,7 +23,9 @@ test("groupBy", () => {
 	});
 
 	assert.equal(
-		groupBy(values, (value) => value.category),
+		groupBy(values, (value) => {
+			return value.category;
+		}),
 		expected,
 	);
 });
@@ -54,7 +56,9 @@ test("groupByToMap", () => {
 	]);
 
 	assert.equal(
-		groupByToMap(values, (value) => value.category),
+		groupByToMap(values, (value) => {
+			return value.category;
+		}),
 		expected,
 	);
 });
@@ -81,7 +85,9 @@ test("groupBy (multiple)", () => {
 	});
 
 	assert.equal(
-		groupBy(values, (value) => value.categories),
+		groupBy(values, (value) => {
+			return value.categories;
+		}),
 		expected,
 	);
 });
@@ -114,7 +120,9 @@ test("groupByToMap (multiple)", () => {
 	]);
 
 	assert.equal(
-		groupByToMap(values, (value) => value.categories),
+		groupByToMap(values, (value) => {
+			return value.categories;
+		}),
 		expected,
 	);
 });

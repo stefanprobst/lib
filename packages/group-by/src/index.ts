@@ -1,6 +1,6 @@
-export function groupBy<T extends object, K extends string | number>(
+export function groupBy<T extends object, K extends number | string>(
 	values: Array<T>,
-	keys: (value: T) => K | Array<K>,
+	keys: (value: T) => Array<K> | K,
 ): Record<K, Array<T>> {
 	const groups = Object.create(null);
 
@@ -26,9 +26,9 @@ export function groupBy<T extends object, K extends string | number>(
 	return groups;
 }
 
-export function groupByToMap<T extends object, K extends any>(
+export function groupByToMap<T extends object, K>(
 	values: Array<T>,
-	keys: (value: T) => K | Array<K>,
+	keys: (value: T) => Array<K> | K,
 ): Map<K, Array<T>> {
 	const groups = new Map();
 
@@ -36,6 +36,7 @@ export function groupByToMap<T extends object, K extends any>(
 		if (!groups.has(id)) {
 			groups.set(id, [value]);
 		} else {
+			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 			groups.get(id)!.push(value);
 		}
 	}

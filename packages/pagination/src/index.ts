@@ -8,8 +8,8 @@ export interface PaginationArgs {
 }
 
 export type PaginationItem =
-	| { type: "page"; page: number }
-	| { type: "ellipsis"; position: "start" | "end" };
+	| { type: "ellipsis"; position: "end" | "start" }
+	| { type: "page"; page: number };
 
 /**
  * @see https://github.com/bramus/js-pagination-sequence/blob/main/src/index.js
@@ -41,7 +41,6 @@ export function createPagination(args: PaginationArgs): Array<PaginationItem> {
 		return [...start.map(createPage), createEllipsis("start"), ...end.map(createPage)];
 	}
 
-	debugger;
 	const start = range(1, edges);
 	const center = range(currentPage - neighbors, currentPage + neighbors);
 	const end = range(pages - (edges - 1), pages);
@@ -58,6 +57,6 @@ function createPage(page: number): PaginationItem {
 	return { type: "page", page };
 }
 
-function createEllipsis(position: "start" | "end"): PaginationItem {
+function createEllipsis(position: "end" | "start"): PaginationItem {
 	return { type: "ellipsis", position };
 }

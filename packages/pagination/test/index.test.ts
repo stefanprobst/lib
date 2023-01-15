@@ -1,8 +1,8 @@
+import { range } from "@stefanprobst/range";
 import { test } from "uvu";
 import * as assert from "uvu/assert";
-import { range } from "@stefanprobst/range";
 
-import { createPagination, PaginationItem } from "../src/index.js";
+import { type PaginationItem, createPagination } from "../src/index.js";
 
 function pad(page: number): string {
 	return String(page).padStart(2, "0");

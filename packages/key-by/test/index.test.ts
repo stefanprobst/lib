@@ -19,7 +19,9 @@ test("keyBy", () => {
 	});
 
 	assert.equal(
-		keyBy(values, (value) => value.id),
+		keyBy(values, (value) => {
+			return value.id;
+		}),
 		expected,
 	);
 });
@@ -40,7 +42,9 @@ test("keyByToMap", () => {
 	]);
 
 	assert.equal(
-		keyByToMap(values, (value) => value.id),
+		keyByToMap(values, (value) => {
+			return value.id;
+		}),
 		expected,
 	);
 });

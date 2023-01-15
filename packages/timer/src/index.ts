@@ -1,5 +1,6 @@
 import { assert } from "@stefanprobst/assert";
 
+// eslint-disable-next-line @typescript-eslint/no-empty-function
 function noop() {}
 
 type TimerId = ReturnType<typeof setTimeout>;

@@ -1,5 +1,6 @@
 import { test } from "uvu";
 import * as assert from "uvu/assert";
+
 import { createUrlSearchParams } from "../src/index.js";
 
 test("should create URLSearchParams", () => {
