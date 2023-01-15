@@ -18,9 +18,15 @@
 	],
 	"sideEffects": false,
 	"scripts": {
-		"build": "rm -rf dist && microbundle --format cjs,modern ./src/index.ts"
+		"build": "pnpm run clean && microbundle --format cjs,modern ./src/index.ts",
+		"clean": "rm -rf dist",
+		"test": "uvu -r tsm test"
 	},
 	"dependencies": {
 		"@stefanprobst/assert": "workspace:*"
+	},
+	"devDependencies": {
+		"@sinonjs/fake-timers": "^10.0.2",
+		"@types/sinonjs__fake-timers": "^8.1.2"
 	}
 }

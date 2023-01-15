@@ -1,6 +1,6 @@
 {
-	"name": "@stefanprobst/log",
-	"version": "1.0.2",
+	"name": "@stefanprobst/pagination",
+	"version": "1.0.0",
 	"license": "MIT",
 	"publishConfig": {
 		"access": "public"
@@ -21,5 +21,8 @@
 		"build": "pnpm run clean && microbundle --format cjs,modern ./src/index.ts",
 		"clean": "rm -rf dist",
 		"test": "uvu -r tsm test"
+	},
+	"devDependencies": {
+		"@stefanprobst/range": "workspace:*"
 	}
 }

@@ -18,6 +18,8 @@
 	],
 	"sideEffects": false,
 	"scripts": {
-		"build": "rm -rf dist && microbundle --format cjs,modern ./src/index.ts"
+		"build": "pnpm run clean && microbundle --format cjs,modern ./src/index.ts",
+		"clean": "rm -rf dist",
+		"test": "uvu -r tsm test"
 	}
 }

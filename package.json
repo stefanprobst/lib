@@ -5,13 +5,14 @@
 		"build": "pnpm run --recursive build",
 		"changeset:add": "changeset add",
 		"changeset:status": "changeset status --verbose",
-		"ci:release": "pnpm run build && changeset publish",
+		"ci:release": "run-s validate build && changeset publish",
 		"format:check": "prettier . --cache --check --ignore-path .gitignore",
 		"format:fix": "pnpm run format:check --write",
 		"prepare": "run-s setup",
 		"setup": "simple-git-hooks || exit 0",
+		"test": "pnpm run --recursive test",
 		"types:check": "tsc --noEmit",
-		"validate": "run-p format:check types:check"
+		"validate": "run-p format:check types:check test"
 	},
 	"engines": {
 		"node": ">=18",
@@ -31,7 +32,9 @@
 		"npm-run-all": "^4.1.5",
 		"prettier": "^2.8.1",
 		"simple-git-hooks": "^2.8.1",
-		"typescript": "^4.9.4"
+		"tsm": "^2.3.0",
+		"typescript": "^4.9.4",
+		"uvu": "^0.5.6"
 	},
 	"commitlint": {
 		"extends": "@stefanprobst/commitlint-config"
