@@ -1,10 +1,19 @@
 import { HttpError } from "./error.js";
+import { promise } from "./promise.js";
+import { wait } from "./wait.js";
 
-export const httpMethods = ["get", "post", "put", "patch", "delete", "head", "options"] as const;
+type Fetch = typeof globalThis.fetch;
 
-export type HttpMethod = (typeof httpMethods)[number];
+interface Hooks {
+	beforeRequest?: (context: RequestContext) => Promise<void> | void;
+	beforeRetry?: (context: RequestContext) => Promise<void> | void;
+	beforeError?: (context: RequestContext) => Promise<void> | void;
+	afterResponse?: (context: RequestContext) => Promise<void> | void;
+}
 
-export type ResponseContentType =
+type HttpMethod = "delete" | "get" | "head" | "options" | "patch" | "post" | "put" | "trace";
+
+type ResponseType =
 	| "arrayBuffer"
 	| "blob"
 	| "formData"
@@ -14,105 +23,59 @@ export type ResponseContentType =
 	| "text"
 	| "void";
 
-export interface RequestConfig extends RequestInit {
-	fetch?: (request: Request) => Promise<Response>;
-	json?: unknown;
-	method?: HttpMethod;
-	responseType?: ResponseContentType;
-	/** @default 10_000 */
-	timeout?: number;
+interface RetryConfig {
+	delay?: (context: RequestContext) => number;
+	shouldRetry?: (context: RequestContext) => boolean;
 }
 
-export async function request(url: URL, config: RequestConfig = {}): Promise<unknown> {
-	const controller = createAbortController(config);
+const retryMethods = new Set(["delete", "get", "head", "options", "put", "trace"]);
 
-	const request = createRequest(url, config);
+const retryStatusCodes = new Set([408, 409, 413, 425, 429, 500, 502, 503, 504]);
 
-	if (config.responseType !== undefined && !request.headers.has("accept")) {
-		if (config.responseType === "json") {
-			request.headers.set("accept", "application/json");
-		} else if (config.responseType === "text") {
-			request.headers.set("accept", "text/*");
-		} else {
-			/** No need to set `Accept` headers for `formData`, `arrayBuffer`, `blob`. */
-		}
+function shouldRetry(context: RequestContext) {
+	if (context.count >= 3) {
+		return false;
 	}
 
-	const fetch = config.fetch ?? globalThis.fetch;
-
-	const response = await fetch(request);
-
-	if (!response.ok) {
-		throw new HttpError(request, response);
+	if (context.response == null || !(context.error instanceof HttpError)) {
+		return false;
 	}
 
-	const responseType =
-		config.responseType ??
-		getContentType(response.headers.get("content-type")?.split(";", 1).at(0));
-
-	if (responseType === "raw") {
-		return response;
+	if (!retryMethods.has(context.request.method)) {
+		return false;
 	}
 
-	if (responseType === "stream") {
-		return response.body;
+	if (!retryStatusCodes.has(context.response.status)) {
+		return false;
 	}
 
-	if (responseType === "void") {
-		return null;
+	if (context.response.status === 413 && context.response.headers.get("retry-after") == null) {
+		return false;
 	}
 
-	if (
-		responseType === "json" &&
-		(response.status === 204 || response.headers.get("content-length") === "0")
-	) {
-		return "";
-	}
-
-	return response[responseType]();
+	return true;
 }
 
-/**
- * TODO: Once `AbortSignal.timeout` has better support,
- * and once `AbortSignal.any` lands, we should use these.
- *
- * @see https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal/timeout_static
- * @see https://github.com/whatwg/dom/issues/920
- */
-function createAbortController(config: RequestConfig): AbortController {
-	const controller = new AbortController();
+function delay(context: RequestContext) {
+	const header = context.response?.headers.get("retry-after");
 
-	const timeout = config.timeout ?? 10_000;
-	const timer = setTimeout(() => {
-		controller.abort();
-	}, timeout);
-
-	config.signal?.addEventListener("abort", () => {
-		controller.abort();
-	});
-	config.signal = controller.signal;
-
-	return controller;
-}
-
-function createRequest(url: URL, config: RequestConfig): Request {
-	if (config.json !== undefined) {
-		const headers = new Headers(config.headers);
-
-		if (!headers.has("content-type")) {
-			headers.set("content-type", "application/json");
-		}
-
-		return new Request(url, { ...config, body: JSON.stringify(config.json), headers });
+	if (header != null) {
+		return Number(header);
 	}
 
-	return new Request(url, config);
+	return 250;
 }
+
+const defaultRetryConfig: Required<RetryConfig> = {
+	delay,
+	shouldRetry,
+};
 
 const contentTypes = {
 	json: new Set(["application/json", "application/ld+json"]),
 	text: new Set([
 		"application/html",
+		"application/xhtml+xml",
 		"application/xml",
 		"image/svg+xml",
 		"text/html",
@@ -121,10 +84,182 @@ const contentTypes = {
 	]),
 };
 
-function getContentType(type: string | undefined): ResponseContentType {
-	if (type == null) return "void";
-	if (contentTypes.json.has(type)) return "json";
-	if (contentTypes.text.has(type)) return "text";
+function getContentType(context: RequestContext): ResponseType {
+	const header = context.response?.headers.get("content-type")?.split(";", 1).at(0);
+
+	if (header == null) {
+		return "void";
+	}
+
+	if (contentTypes.json.has(header)) {
+		return "json";
+	}
+
+	if (contentTypes.text.has(header)) {
+		return "text";
+	}
 
 	return "raw";
+}
+
+interface RequestContext {
+	count: number;
+	fetch: Fetch;
+	request: Request;
+	response: Response | null;
+	error: Error | null;
+}
+
+interface RequestConfig extends Omit<RequestInit, "body"> {
+	body?: Record<string, unknown> | RequestInit["body"];
+	/** @internal */
+	count?: number;
+	fetch?: Fetch;
+	hooks?: Hooks;
+	method?: HttpMethod;
+	responseType?: ResponseType | ((context: RequestContext) => ResponseType);
+	retries?: RetryConfig;
+	/** @default 10_000 */
+	timeout?: number | false;
+}
+
+export async function request(input: RequestInfo | URL, config: RequestConfig): Promise<unknown> {
+	const {
+		count = 0,
+		fetch = globalThis.fetch.bind(globalThis),
+		hooks,
+		responseType = getContentType,
+		retries,
+		timeout = 10_000,
+		...options
+	} = config;
+
+	const controller = new AbortController();
+
+	if (options.signal != null) {
+		const signal = options.signal;
+
+		if (signal.aborted) {
+			controller.abort(signal.reason);
+		} else {
+			// TODO: remove event listener
+			signal.addEventListener(
+				"abort",
+				() => {
+					controller.abort(signal.reason);
+				},
+				{ once: true },
+			);
+		}
+	}
+
+	options.signal = controller.signal;
+
+	const timer =
+		timeout !== false
+			? setTimeout(() => {
+					const reason = new DOMException("TimeoutError", "TimeoutError");
+					controller.abort(reason);
+			  }, timeout)
+			: null;
+
+	// TODO: Need to merge headers when `input` is instanceof `Request`.
+	options.headers = new Headers(options.headers);
+
+	if (!options.headers.has("accept")) {
+		if (responseType === "json") {
+			options.headers.set("accept", "application/json");
+		} else if (responseType === "text") {
+			options.headers.set("accept", "text/*");
+		} else if (responseType === "formData") {
+			options.headers.set("accept", "multipart/form-data");
+		} else {
+			options.headers.set("accept", "*/*");
+		}
+	}
+
+	if (options.body !== null && typeof options.body === "object") {
+		if (options.body.constructor.name === "Object") {
+			options.body = JSON.stringify(options.body);
+
+			if (!options.headers.has("content-type")) {
+				options.headers.set("content-type", "application/json");
+			}
+		} else if (options.body instanceof FormData || options.body instanceof URLSearchParams) {
+			options.headers.delete("content-type");
+		}
+	}
+
+	const context: RequestContext = {
+		count,
+		fetch,
+		request: new Request(input, options as RequestInit),
+		response: null,
+		error: null,
+	};
+
+	if (hooks?.beforeRequest != null) {
+		await hooks.beforeRequest(context);
+	}
+
+	try {
+		context.response ??= await context.fetch(context.request);
+
+		if (!context.response.ok) {
+			throw new HttpError(context.request, context.response);
+		}
+
+		if (hooks?.afterResponse != null) {
+			await hooks.afterResponse(context);
+		}
+
+		const contentType = typeof responseType === "function" ? responseType(context) : responseType;
+
+		if (
+			contentType === "json" &&
+			(context.response.status === 204 || context.response.headers.get("content-length") === "0")
+		) {
+			return "";
+		} else if (contentType === "raw") {
+			return context.response;
+		} else if (contentType === "stream") {
+			return context.response.body;
+		} else if (contentType === "void") {
+			return null;
+		}
+
+		return context.response[contentType]();
+	} catch (error) {
+		context.error = error as Error;
+
+		const retryConfig = { ...defaultRetryConfig, ...retries };
+
+		if (retryConfig.shouldRetry(context)) {
+			const delay = retryConfig.delay(context);
+
+			const { error } = await promise(() => {
+				return wait(delay, controller.signal);
+			});
+
+			if (error == null) {
+				if (hooks?.beforeRetry != null) {
+					await hooks.beforeRetry(context);
+				}
+
+				return request(context.request, { count: count + 1 });
+			} else {
+				context.error = error as Error;
+			}
+		}
+
+		if (hooks?.beforeError != null) {
+			await hooks.beforeError(context);
+		}
+
+		throw context.error;
+	} finally {
+		if (timer != null) {
+			clearTimeout(timer);
+		}
+	}
 }
