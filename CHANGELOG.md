@@ -1,5 +1,12 @@
 # @stefanprobst/lib
 
+## 0.1.2
+
+### Patch Changes
+
+- [`460b150`](https://github.com/stefanprobst/lib/commit/460b1506f569a10e02aefcb367ef4d404198d245)
+  Thanks [@stefanprobst](https://github.com/stefanprobst)! - add create-headers utility
+
 ## 0.1.1
 
 ### Patch Changes
