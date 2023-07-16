@@ -1,5 +1,12 @@
 # @stefanprobst/lib
 
+## 0.1.3
+
+### Patch Changes
+
+- [`d518023`](https://github.com/stefanprobst/lib/commit/d5180235ee2db2a208ca7a6e5216a8de252aba2f)
+  Thanks [@stefanprobst](https://github.com/stefanprobst)! - add debounce utility
+
 ## 0.1.2
 
 ### Patch Changes
