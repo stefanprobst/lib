@@ -16,6 +16,7 @@ npm i @stefanprobst/lib
 - `create-timer`
 - `create-url`
 - `create-url-search-params`
+- `debounce`
 - `group-by`
 - `is-non-nullable`
 - `is-nonempty-array`
