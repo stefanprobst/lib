@@ -1,5 +1,13 @@
 # @stefanprobst/lib
 
+## 0.1.4
+
+### Patch Changes
+
+- [`d11e663`](https://github.com/stefanprobst/lib/commit/d11e6630d9c371b26f8b79686c492ce6a759f878)
+  Thanks [@stefanprobst](https://github.com/stefanprobst)! - treat next.js ReadonlyURLSearchParams
+  like URLSearchParams
+
 ## 0.1.3
 
 ### Patch Changes
