@@ -1,11 +1,49 @@
 import { type Nullable, type Primitive } from "./types.js";
 
-export type CreateUrlSearchParamsParams = Record<
-	string,
-	Array<Nullable<Primitive>> | Nullable<Primitive>
->;
+export type CreateUrlSearchParamsParams =
+	| Array<[string, Nullable<Primitive>]>
+	| FormData
+	| Record<string, Array<Nullable<Primitive>> | Nullable<Primitive>>
+	| URLSearchParams
+	| string;
 
 export function createUrlSearchParams(params: CreateUrlSearchParamsParams): URLSearchParams {
+	if (typeof params === "string") {
+		return new URLSearchParams(params);
+	}
+
+	if (
+		params instanceof URLSearchParams ||
+		/**
+		 * Next.js wraps `URLSearchParams` in their own `ReadonlyURLSearchParams`.
+		 *
+		 * @see https://github.com/vercel/next.js/blob/canary/packages/next/src/client/components/navigation.ts#L25
+		 */
+		params.constructor.name === "ReadonlyURLSearchParams" ||
+		/**
+		 * Typescript does not natively allow passing `FormData`, because it could contain `File` fields,
+		 * which would be serialized as `"[object File]"`.
+		 *
+		 * @see https://github.com/microsoft/TypeScript/issues/30584
+		 */
+		params instanceof FormData
+	) {
+		// @ts-expect-error See above.
+		return new URLSearchParams(params);
+	}
+
+	if (Array.isArray(params)) {
+		const urlSearchParams = new URLSearchParams();
+
+		params.forEach(([key, value]) => {
+			if (value != null) {
+				urlSearchParams.append(key, String(value));
+			}
+		});
+
+		return urlSearchParams;
+	}
+
 	const urlSearchParams = new URLSearchParams();
 
 	Object.entries(params).forEach(([key, value]) => {
