@@ -1,5 +1,13 @@
 # @stefanprobst/lib
 
+## 0.1.5
+
+### Patch Changes
+
+- [`65588dc`](https://github.com/stefanprobst/lib/commit/65588dc6086353b26bc1d9aa1468074b3b5e3805)
+  Thanks [@stefanprobst](https://github.com/stefanprobst)! - cancel readable stream when returning
+  null or empty string
+
 ## 0.1.4
 
 ### Patch Changes
